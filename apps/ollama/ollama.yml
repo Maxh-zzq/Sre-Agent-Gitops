@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ai-services	
+  name: ai-services
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -11,10 +11,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: openebs-hostpath # 确保集群里装了这个 StorageClass
+  storageClassName: openebs-hostpath   # 已确认集群里存在且能供给（见 describe sc）
   resources:
     requests:
-      storage: 20Gi # 模型很占空间，建议至少 20G 起步
+      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -24,24 +24,26 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: ollama }
+    matchLabels:
+      app: ollama
   template:
     metadata:
-      labels: { app: ollama }
+      labels:
+        app: ollama
     spec:
       containers:
-      - name: ollama
-        image: ollama/ollama:latest
-        ports:
-        - containerPort: 11434
-          volumeMounts:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+              protocol: TCP
+          volumeMounts:                       # ★ 与 ports 同级（8 空格）
             - name: ollama-storage
-              mountPath: /root/.ollama # Ollama 默认存模型的目录
-      # 注意缩进，要和 containers 平级
+              mountPath: /root/.ollama        # Ollama 默认放模型的目录
       volumes:
         - name: ollama-storage
           persistentVolumeClaim:
-            claimName: ollama-pvc  
+            claimName: ollama-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -50,7 +52,8 @@ metadata:
   namespace: ai-services
 spec:
   type: NodePort
-  selector: { app: ollama }
+  selector:
+    app: ollama
   ports:
-  - port: 11434
-    targetPort: 11434
+    - port: 11434
+      targetPort: 11434
