@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sre-agent
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sre-agent
+  template:
+    metadata:
+      labels:
+        app: sre-agent
+    spec:
+      serviceAccountName: sre-agent-sa # 关联ServiceAccount
+      containers:
+      - name: agent
+        image: sre-agent:v1.0 # 使用我们本地构建的镜像
+        imagePullPolicy: IfNotPresent # 关键！强制使用本地镜像

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sre-agent-sa
+  namespace: default # Agent将部署在default命名空间
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sre-agent-role
+rules:
+- apiGroups: [""] # 核心API组
+  resources: ["pods", "pods/log", "events"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sre-agent-binding
+subjects:
+- kind: ServiceAccount
+  name: sre-agent-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: sre-agent-role
+  apiGroup: rbac.authorization.k8s.io
